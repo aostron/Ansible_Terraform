@@ -16,9 +16,4 @@ Ansible is used to configure the software on the EC2 instances.
 - AWS CLI configured with appropriate permissions
 - An SSH key pair for accessing the EC2 instances
 
-## Setup Instructions
 
-1. Clone the repository:
-   ```sh
-   git clone <repository-url>
-   cd <repository-directory>
