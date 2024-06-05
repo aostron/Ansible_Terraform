@@ -1,0 +1,47 @@
+---
+- hosts: jenkins_slave
+  become: yes
+  tasks:
+    - name: Update repositories cache
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Install jdk-11
+      ansible.builtin.apt:
+        name: openjdk-11-jdk
+        state: present
+
+    - name: Add a Jenkins key
+      ansible.builtin.apt_key:
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+        state: present
+
+    - name: Add Jenkins apt repository
+      ansible.builtin.apt_repository:
+        repo: deb https://pkg.jenkins.io/debian-stable binary/
+        state: present
+
+    - name: Install Jenkins
+      ansible.builtin.apt:
+        name: jenkins
+        state: present
+
+    - name: Change JENKINS_ARGS in configuration
+      ansible.builtin.lineinfile:
+        path: /etc/default/jenkins
+        regexp: '^JENKINS_ARGS=".*--httpPort=\$HTTP_PORT"'
+        line: 'JENKINS_ARGS="--webroot=/var/cache/$NAME/war --httpPort=$HTTP_PORT --httpListenAddress=127.0.0.1"'
+        backrefs: yes
+
+    - name: Restart service jenkins, in all cases
+      ansible.builtin.service:
+        name: jenkins
+        state: restarted
+
+    - name: Get Jenkins login
+      ansible.builtin.shell: "cat /var/lib/jenkins/secrets/initialAdminPassword"
+      register: pwd
+
+    - name: Print return information from the previous task
+      ansible.builtin.debug:
+        msg: "Jenkins Initial Admin Password: {{ pwd.stdout }}"
